@@ -2,17 +2,10 @@
 streamlit==1.46.1
 numpy==1.26.4
 pandas==2.1.4
-
-# Machine learning and audio
 torch==2.0.1
 librosa==0.10.1
-soundfile==0.12.1
-
-# Data, visualizations and NLP
 altair==5.5.0
 transformers==4.41.1
 sentencepiece==0.2.0
-
-# YouTube downloader and TTS
 yt-dlp==2024.5.27
 pyttsx3==2.90

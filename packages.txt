@@ -1,4 +1,4 @@
 ffmpeg
 libsndfile1
-espeak
 python3-distutils
+
