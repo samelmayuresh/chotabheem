@@ -1,12 +1,15 @@
-# Enhanced Dockerfile for Emotion AI
+# Cloud Run optimized Dockerfile for Emotion AI
 FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV PORT=8080
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
     ffmpeg \
     libsndfile1 \
     git \
@@ -29,19 +32,21 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p logs data exports
 
-# Set proper permissions
-RUN chmod +x setup.py
+# Create non-root user for security
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8501/_stcore/health || exit 1
+    CMD curl -f http://localhost:$PORT/_stcore/health || exit 1
 
-# Expose port
-EXPOSE 8501
+# Expose port (Cloud Run uses PORT env variable)
+EXPOSE $PORT
 
-# Run the enhanced application
-CMD ["streamlit", "run", "app_enhanced.py", \
-     "--server.port=8501", \
-     "--server.address=0.0.0.0", \
-     "--server.enableCORS=false", \
-     "--server.enableXsrfProtection=false"]
+# Run the complete application
+CMD streamlit run app_complete.py \
+    --server.port=$PORT \
+    --server.address=0.0.0.0 \
+    --server.headless=true \
+    --server.enableCORS=false \
+    --server.enableXsrfProtection=false
