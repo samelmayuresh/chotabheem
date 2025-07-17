@@ -1,0 +1,93 @@
+{
+  "mood_history": [
+    {
+      "id": 1,
+      "created_at": "2025-01-17T10:00:00Z",
+      "emotion": "joy",
+      "score": 0.85,
+      "confidence": 0.85,
+      "analysis_type": "text",
+      "session_id": "sample_session_1"
+    },
+    {
+      "id": 2,
+      "created_at": "2025-01-17T11:00:00Z",
+      "emotion": "neutral",
+      "score": 0.6,
+      "confidence": 0.6,
+      "analysis_type": "text",
+      "session_id": "sample_session_1"
+    },
+    {
+      "id": 3,
+      "created_at": "2025-01-17T12:00:00Z",
+      "emotion": "excitement",
+      "score": 0.78,
+      "confidence": 0.78,
+      "analysis_type": "audio",
+      "session_id": "sample_session_2"
+    },
+    {
+      "created_at": "2025-07-17T08:28:39.102599",
+      "emotion": "joy",
+      "score": 0.85,
+      "confidence": 0.85,
+      "all_emotions": "[{\"label\": \"joy\", \"score\": 0.85}]",
+      "analysis_type": "test",
+      "session_id": "test_session",
+      "user_input_length": 10,
+      "processing_time": 0.5,
+      "id": 4
+    },
+    {
+      "created_at": "2025-07-17T08:29:31.247487",
+      "emotion": "joy",
+      "score": 0.85,
+      "confidence": 0.85,
+      "all_emotions": "[{\"label\": \"joy\", \"score\": 0.85}]",
+      "analysis_type": "test",
+      "session_id": "test_session",
+      "user_input_length": 10,
+      "processing_time": 0.5,
+      "id": 5
+    },
+    {
+      "created_at": "2025-07-17T08:30:31.421685",
+      "emotion": "joy",
+      "score": 0.85,
+      "confidence": 0.85,
+      "all_emotions": "[{\"label\": \"joy\", \"score\": 0.85}]",
+      "analysis_type": "test",
+      "session_id": "test_session",
+      "user_input_length": 10,
+      "processing_time": 0.5,
+      "id": 6
+    },
+    {
+      "created_at": "2025-07-17T08:33:47.244835",
+      "emotion": "joy",
+      "score": 0.85,
+      "confidence": 0.85,
+      "all_emotions": "[{\"label\": \"joy\", \"score\": 0.85}]",
+      "analysis_type": "test",
+      "session_id": "test_session",
+      "user_input_length": 10,
+      "processing_time": 0.5,
+      "id": 7
+    },
+    {
+      "created_at": "2025-07-17T08:52:05.129981",
+      "emotion": "joy",
+      "score": 0.85,
+      "confidence": 0.85,
+      "all_emotions": "[{\"label\": \"joy\", \"score\": 0.85}]",
+      "analysis_type": "test",
+      "session_id": "test_session",
+      "user_input_length": 10,
+      "processing_time": 0.5,
+      "id": 8
+    }
+  ],
+  "updated_at": "2025-07-17T14:22:05.130248",
+  "version": "1.0"
+}
