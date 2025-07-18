@@ -25,12 +25,21 @@ class APIConfig:
         except FileNotFoundError:
             pass
         
-        # Load from environment variables (override file values)
-        self.openrouter_key = os.getenv("OPENROUTER_KEY", self.openrouter_key)
-        self.tenor_key = os.getenv("TENOR_API_KEY", "AIzaSyAARkiZD-Qo59Pji8ihow4hJCZDOsdchzE")
-        self.weather_key = os.getenv("WEATHER_API_KEY", "24b359c76d994182864153220251507")
-        self.supabase_url = os.getenv("SUPABASE_URL", "https://thvugbyogpuvcljlcplf.supabase.co")
-        self.supabase_key = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRodnVnYnlvZ3B1dmNsamxjcGxmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1MjQxODgsImV4cCI6MjA2NTEwMDE4OH0.zM9jr8RXEqTDSjFcFhOVBzpi-iSg8-BkxvdULwqAxww")
+        # Load from environment variables and Streamlit secrets (override file values)
+        self.openrouter_key = self._get_secret("OPENROUTER_KEY", self.openrouter_key)
+        self.tenor_key = self._get_secret("TENOR_API_KEY", "AIzaSyAARkiZD-Qo59Pji8ihow4hJCZDOsdchzE")
+        self.weather_key = self._get_secret("WEATHER_API_KEY", "24b359c76d994182864153220251507")
+        self.supabase_url = self._get_secret("SUPABASE_URL", "https://thvugbyogpuvcljlcplf.supabase.co")
+        self.supabase_key = self._get_secret("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRodnVnYnlvZ3B1dmNsamxjcGxmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1MjQxODgsImV4cCI6MjA2NTEwMDE4OH0.zM9jr8RXEqTDSjFcFhOVBzpi-iSg8-BkxvdULwqAxww")
+    
+    def _get_secret(self, key: str, default: str = None) -> str:
+        """Get secret from Streamlit secrets or environment variables"""
+        # Try Streamlit secrets first
+        try:
+            return st.secrets[key]
+        except (KeyError, AttributeError):
+            # Fall back to environment variables
+            return os.getenv(key, default)
 
 @dataclass
 class AppConfig:
