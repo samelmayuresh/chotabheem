@@ -21,3 +21,4 @@ aiohttp>=3.8.0
 cachetools>=5.0.0
 opencv-python>=4.8.0
 deepface
+tensorflow
