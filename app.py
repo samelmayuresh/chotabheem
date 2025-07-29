@@ -15,6 +15,7 @@ import datetime as dt
 import tempfile, wave, os, io
 # Add this import after your existing imports
 from gif_generator import display_emotion_gif, create_gif_tab, add_gif_to_emotion_display
+from face_emotion_detector import analyze_face, draw_emotion_on_face
 # Modern UI Configuration
 st.set_page_config(
     page_title="🧠 Emotion AI - Voice & Text Analysis",
@@ -798,13 +799,14 @@ def maybe_breathing_popup(scores):
 st.markdown('<div class="content-container">', unsafe_allow_html=True)
 
 # ---------- Tabs ----------
-tab_audio, tab_text, tab_yt, tab_chat, tab_voice, tab_history = st.tabs([
-    "🎙️ Voice Analysis", 
-    "📝 Text Analysis", 
+tab_audio, tab_text, tab_yt, tab_chat, tab_voice, tab_history, tab_face = st.tabs([
+    "🎙️ Voice Analysis",
+    "📝 Text Analysis",
     "🎵 Music Therapy",
-    "🧠 AI Therapist", 
+    "🧠 AI Therapist",
     "🎤 Voice Assistant",
-    "📊 Mood History"
+    "📊 Mood History",
+    "😊 Face Emotion"
 ])
 
 # ---------------- TAB 1 : Audio ----------------
@@ -1185,6 +1187,44 @@ with tab_history:
 col_top_left, col_top_right = st.columns([4, 1])
 # Remove duplicate weather feature at bottom if any
 # The weather feature is now only present above the "Advanced Emotion Detection" heading
+
+# ---------------- TAB 7 : Face Emotion Detector ----------------
+with tab_face:
+    st.markdown('<div class="modern-card">', unsafe_allow_html=True)
+    st.markdown("### 😊 Face Emotion Detection")
+    st.markdown("Upload an image to detect emotions from faces.")
+
+    uploaded_image = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
+
+    if uploaded_image is not None:
+        st.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
+
+        if st.button("Analyze Face", use_container_width=True):
+            with st.spinner("Analyzing face..."):
+                # To avoid re-reading the file, we use the `getvalue()` method
+                image_bytes = uploaded_image.getvalue()
+
+                # We need to pass a file-like object to the analyze_face function
+
+                result = analyze_face(io.BytesIO(image_bytes))
+
+                if result:
+                    st.success("Analysis complete!")
+
+                    # We need to pass a file-like object to the draw_emotion_on_face function
+                    processed_image = draw_emotion_on_face(io.BytesIO(image_bytes), result)
+
+                    if processed_image is not None:
+                        st.image(processed_image, caption="Processed Image", use_column_width=True)
+
+                    st.write("### Analysis Results")
+                    for i, face in enumerate(result):
+                        st.write(f"**Face {i+1}:**")
+                        st.write(f"- Emotion: {face['dominant_emotion']}")
+                        st.write("- Region:")
+                        st.json(face['region'])
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # No extra closing div markdown at the bottom to avoid duplicate text or errors
 
