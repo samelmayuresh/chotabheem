@@ -15,7 +15,7 @@ import datetime as dt
 import tempfile, wave, os, io
 # Add this import after your existing imports
 from gif_generator import display_emotion_gif, create_gif_tab, add_gif_to_emotion_display
-from face_emotion_detector import analyze_face, draw_emotion_on_face
+from comprehensive_emotion_detector import analyze_face_comprehensive, draw_emotion_on_face_comprehensive, format_emotion_results_comprehensive
 # Modern UI Configuration
 st.set_page_config(
     page_title="🧠 Emotion AI - Voice & Text Analysis",
@@ -1197,32 +1197,105 @@ with tab_face:
     uploaded_image = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
 
     if uploaded_image is not None:
-        st.image(uploaded_image, caption="Uploaded Image", use_column_width=True)
+        st.image(uploaded_image, caption="Uploaded Image", use_container_width=True)
 
         if st.button("Analyze Face", use_container_width=True):
-            with st.spinner("Analyzing face..."):
+            with st.spinner("🧠 Analyzing with Comprehensive Multi-Model AI..."):
                 # To avoid re-reading the file, we use the `getvalue()` method
                 image_bytes = uploaded_image.getvalue()
 
-                # We need to pass a file-like object to the analyze_face function
-
-                result = analyze_face(io.BytesIO(image_bytes))
+                # Use the comprehensive emotion detector
+                result = analyze_face_comprehensive(io.BytesIO(image_bytes))
 
                 if result:
-                    st.success("Analysis complete!")
+                    st.success("✅ Comprehensive Multi-Model AI analysis complete!")
 
-                    # We need to pass a file-like object to the draw_emotion_on_face function
-                    processed_image = draw_emotion_on_face(io.BytesIO(image_bytes), result)
+                    # Draw emotions on the image
+                    processed_image = draw_emotion_on_face_comprehensive(io.BytesIO(image_bytes), result)
 
                     if processed_image is not None:
-                        st.image(processed_image, caption="Processed Image", use_column_width=True)
+                        st.image(processed_image, caption="🧠 Comprehensive Multi-Model Emotion AI", use_container_width=True)
 
-                    st.write("### Analysis Results")
-                    for i, face in enumerate(result):
-                        st.write(f"**Face {i+1}:**")
-                        st.write(f"- Emotion: {face['dominant_emotion']}")
-                        st.write("- Region:")
-                        st.json(face['region'])
+                    # Format and display results
+                    formatted_results = format_emotion_results_comprehensive(result)
+                    
+                    st.write("### 🧠 Comprehensive Multi-Model AI Analysis")
+                    
+                    for face_data in formatted_results:
+                        with st.expander(f"🧠 Multi-Model AI Detected: {face_data['dominant_emotion']} ({face_data['confidence']})", expanded=True):
+                            
+                            col1, col2 = st.columns([1, 1])
+                            
+                            with col1:
+                                st.write("**📍 Advanced Detection Info:**")
+                                st.write(f"• Position: ({face_data['region']['x']}, {face_data['region']['y']})")
+                                st.write(f"• Size: {face_data['region']['w']} × {face_data['region']['h']} pixels")
+                                st.write(f"• Face Area: {face_data.get('face_area', 0):,} pixels²")
+                                st.write(f"• Detection Method: {face_data.get('detection_method', 'standard').title()}")
+                                st.write(f"• Models Used: {face_data.get('models_used', 0)}")
+                            
+                            with col2:
+                                st.write("**🧠 Multi-Model AI Result:**")
+                                
+                                # Comprehensive emotion display with extended emojis
+                                emotion_emojis = {
+                                    'Happy': '😊', 'Sad': '😢', 'Angry': '😠', 'Fear': '😨', 
+                                    'Surprise': '😲', 'Disgust': '🤢', 'Neutral': '😐',
+                                    'Contempt': '😤', 'Excitement': '🤩', 'Boredom': '😑',
+                                    'Confusion': '😕', 'Disappointment': '😞', 'Embarrassment': '😳',
+                                    'Pain': '😣', 'Pleasure': '😌', 'Relief': '😮‍💨',
+                                    'Shame': '😔', 'Pride': '😏'
+                                }
+                                emoji = emotion_emojis.get(face_data['dominant_emotion'], '🎭')
+                                
+                                st.markdown(f"## {emoji} **{face_data['dominant_emotion']}**")
+                                st.caption(f"🧠 Powered by {face_data.get('model_type', 'Multi-Model')} AI")
+                                
+                                # Confidence indicator with color coding
+                                confidence_val = float(face_data['confidence'].rstrip('%')) / 100
+                                if confidence_val >= 0.8:
+                                    st.success(f"🚀 Excellent Accuracy: {face_data['confidence']}")
+                                elif confidence_val >= 0.6:
+                                    st.info(f"✅ Good Accuracy: {face_data['confidence']}")
+                                elif confidence_val >= 0.4:
+                                    st.warning(f"⚠️ Moderate Accuracy: {face_data['confidence']}")
+                                else:
+                                    st.error(f"❌ Low Accuracy: {face_data['confidence']}")
+                                
+                                # Show raw predictions if available
+                                if face_data.get('raw_predictions'):
+                                    with st.expander("🔍 Raw Multi-Model AI Predictions", expanded=False):
+                                        for i, model_preds in enumerate(face_data['raw_predictions']):
+                                            st.write(f"**Model {i+1} Predictions:**")
+                                            for pred in model_preds:
+                                                st.write(f"  • **{pred['label']}**: {pred['score']:.1%}")
+                                            st.write("---")
+                            
+                            st.write("**📊 Comprehensive Emotion Analysis (Top 10):**")
+                            
+                            # Create enhanced visual display for comprehensive emotions
+                            emotions_list = list(face_data['all_emotions'].items())
+                            
+                            # Display in two columns for better layout
+                            emotion_cols = st.columns(2)
+                            
+                            for i, (emotion, score) in enumerate(emotions_list):
+                                # Comprehensive emotion emojis
+                                emotion_emojis = {
+                                    'Happy': '😊', 'Sad': '😢', 'Angry': '😠', 'Fear': '😨', 
+                                    'Surprise': '😲', 'Disgust': '🤢', 'Neutral': '😐',
+                                    'Contempt': '😤', 'Excitement': '🤩', 'Boredom': '😑',
+                                    'Confusion': '😕', 'Disappointment': '😞', 'Embarrassment': '😳',
+                                    'Pain': '😣', 'Pleasure': '😌', 'Relief': '😮‍💨',
+                                    'Shame': '😔', 'Pride': '😏'
+                                }
+                                emoji = emotion_emojis.get(emotion, '🎭')
+                                
+                                # Alternate between columns
+                                with emotion_cols[i % 2]:
+                                    score_val = float(score.rstrip('%')) / 100
+                                    st.write(f"{emoji} **{emotion}**: {score}")
+                                    st.progress(score_val)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
