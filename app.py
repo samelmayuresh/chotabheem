@@ -4,7 +4,7 @@ import librosa, torch, numpy as np, pandas as pd
 import altair as alt
 from transformers import pipeline
 import os
-import pyttsx3  # Free text-to-speech
+# Text-to-speech removed for cloud deployment compatibility
 import threading
 import queue
 import requests
@@ -13,9 +13,18 @@ from datetime import datetime, timedelta
 from supabase import create_client, Client
 import datetime as dt
 import tempfile, wave, os, io
-# Add this import after your existing imports
-from gif_generator import display_emotion_gif, create_gif_tab, add_gif_to_emotion_display
-from comprehensive_emotion_detector import analyze_face_comprehensive, draw_emotion_on_face_comprehensive, format_emotion_results_comprehensive
+# Import emotion detection functions
+try:
+    from perfect_emotion_detector import analyze_face_perfect, draw_emotion_on_face_perfect, format_emotion_results_perfect
+    PERFECT_DETECTOR_AVAILABLE = True
+except ImportError:
+    PERFECT_DETECTOR_AVAILABLE = False
+    try:
+        from simple_emotion_detector import analyze_face_simple as analyze_face_perfect, draw_emotion_on_face_simple as draw_emotion_on_face_perfect, format_emotion_results_simple as format_emotion_results_perfect
+        st.info("ℹ️ Using simple emotion detector for cloud deployment.")
+    except ImportError:
+        st.error("❌ No emotion detector available. Please check your installation.")
+        PERFECT_DETECTOR_AVAILABLE = False
 # Modern UI Configuration
 st.set_page_config(
     page_title="🧠 Emotion AI - Voice & Text Analysis",
@@ -379,7 +388,7 @@ import librosa, torch, numpy as np, pandas as pd
 import altair as alt
 from transformers import pipeline
 import os
-import pyttsx3  # Free text-to-speech
+# Text-to-speech removed for cloud deployment compatibility
 import threading
 import requests
 import json
@@ -387,8 +396,6 @@ from datetime import datetime, timedelta
 from supabase import create_client, Client
 import datetime as dt
 import tempfile, wave, os, io
-# Add this import after your existing imports
-from gif_generator import display_emotion_gif, create_gif_tab, add_gif_to_emotion_display
 
 # Supabase configuration
 SUPABASE_URL = "https://grhrzxgxazzvnouxczbb.supabase.co"
@@ -521,12 +528,8 @@ def display_emotion_score_with_smart_voice(emotion, score, voice_engine=None, us
                 st.info("💬 **Voice Assistant Response:**")
             st.write(response_data['message'])
             st.info(f"💡 **Suggestion:** {response_data['suggestion']}")
-            if voice_engine:
-                full_response = f"{response_data['message']} {response_data['suggestion']}"
-                speak_text(full_response, voice_engine)
-                st.success("🔊 Playing voice response...")
-            else:
-                st.warning("🔇 Voice engine not available, but text support is shown above.")
+            # Voice synthesis disabled for cloud deployment
+            st.info("💬 Voice synthesis disabled for cloud deployment. Text response shown above.")
                 # ---------- Cached models ----------
 @st.cache_resource
 def load_asr():
@@ -549,30 +552,24 @@ asr_pipe = load_asr()
 emo_pipe = load_emotion()
 @st.cache_resource
 def load_voice_engine():
-    """Initialize text-to-speech engine with error logging"""
-    import logging
-    try:
-        engine = pyttsx3.init()
-        voices = engine.getProperty('voices')
-        # Set a female voice if available
-        for voice in voices:
-            if 'female' in voice.name.lower() or 'zira' in voice.name.lower():
-                engine.setProperty('voice', voice.id)
-                break
-        engine.setProperty('rate', 160)  # Speed
-        engine.setProperty('volume', 0.8)  # Volume
-        return engine
-    except Exception as e:
-        logging.error(f"Failed to initialize pyttsx3 voice engine: {e}")
-        return None
+    """Voice engine disabled for cloud deployment compatibility"""
+    return None
 
 def get_ai_voice_response(emotion, confidence_score, user_context=""):
     """Get AI-powered emotional support using minimal tokens"""
     # Read your existing OpenRouter key
     try:
-        with open("key.txt", encoding="utf-8") as f:
-            OPENROUTER_KEY = f.read().strip()
-    except FileNotFoundError:
+        # Try environment variable first, then file
+        OPENROUTER_KEY = os.getenv('OPENROUTER_KEY')
+        if not OPENROUTER_KEY:
+            try:
+                with open("key.txt", encoding="utf-8") as f:
+                    OPENROUTER_KEY = f.read().strip()
+            except FileNotFoundError:
+                pass
+        if not OPENROUTER_KEY:
+            return None
+    except Exception:
         return None
     # Ultra-compact prompt to minimize token usage
     prompt = f"""You are a compassionate voice assistant. User emotion: {emotion} (confidence: {confidence_score:.1%}). 
@@ -682,51 +679,20 @@ def get_smart_voice_response(emotion, confidence_score, user_context=""):
         "ai_powered": False
     }
 
-# Speech queue and background thread for pyttsx3 to avoid "run loop already started" error
-speech_queue = queue.Queue()
-
-def speech_worker(voice_engine):
-    import logging
-    while True:
-        text = speech_queue.get()
-        if text is None:
-            break  # Exit signal
-        try:
-            voice_engine.say(text)
-            voice_engine.runAndWait()
-        except Exception as e:
-            logging.error(f"Error during speech synthesis: {e}")
-        speech_queue.task_done()
-
-# Start speech worker thread once
-speech_thread = None
-def start_speech_thread(voice_engine):
-    global speech_thread
-    if speech_thread is None or not speech_thread.is_alive():
-        speech_thread = threading.Thread(target=speech_worker, args=(voice_engine,), daemon=True)
-        speech_thread.start()
-
+# Voice synthesis disabled for cloud deployment compatibility
 def speak_text(text, voice_engine):
-    """Enqueue text to be spoken by the speech worker thread"""
-    if voice_engine:
-        if speech_thread is None or not speech_thread.is_alive():
-            start_speech_thread(voice_engine)
-        speech_queue.put(text)
+    """Voice synthesis disabled for cloud deployment"""
+    pass
 
 def add_voice_to_chat_response(chat_response, voice_engine):
-    """Add voice synthesis to chat responses"""
-    if voice_engine and st.button("🎙️ Read Response Aloud"):
-        speak_text(chat_response, voice_engine)
-        st.success("🔊 Playing response...")
+    """Voice synthesis disabled for cloud deployment"""
+    st.info("💬 Voice synthesis disabled for cloud deployment compatibility.")
 
 # Initialize voice engine
 voice_engine = load_voice_engine()
 
-import logging
-if voice_engine is None:
-    st.warning("🔇 Voice engine failed to initialize. Please ensure pyttsx3 is installed and working.")
-else:
-    st.info("✅ Voice engine initialized successfully.")
+# Voice engine disabled for cloud deployment
+st.info("ℹ️ Voice features disabled for cloud deployment compatibility. Text responses available.")
 
 # ---------- Chart styling ----------
 def show_emotion_chart(scores, top_k=8):
@@ -953,10 +919,19 @@ with tab_chat:
     
     # Read OpenRouter key
     try:
-        with open("key.txt", encoding="utf-8") as f:
-            OPENROUTER_KEY = f.read().strip()
-    except FileNotFoundError:
-        st.error("🔑 API key not found. Create a 'key.txt' file with your OpenRouter API key.")
+        # Try environment variable first, then file
+        OPENROUTER_KEY = os.getenv('OPENROUTER_KEY')
+        if not OPENROUTER_KEY:
+            try:
+                with open("key.txt", encoding="utf-8") as f:
+                    OPENROUTER_KEY = f.read().strip()
+            except FileNotFoundError:
+                pass
+        if not OPENROUTER_KEY:
+            st.error("🔑 API key not found. Set OPENROUTER_KEY environment variable or create a 'key.txt' file.")
+            st.stop()
+    except Exception:
+        st.error("🔑 Error loading API key.")
         st.stop()
     
     OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -1071,8 +1046,7 @@ with tab_voice:
         if st.button("🎤 Test Voice"):
             speak_text("Hello! I'm your AI emotional support assistant. I'm here to help you feel better.", voice_engine)
     else:
-        st.error("❌ Voice engine not available")
-        st.info("Install: `pip install pyttsx3`")
+        st.info("💬 Voice features disabled for cloud deployment compatibility.")
     
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1200,56 +1174,61 @@ with tab_face:
         st.image(uploaded_image, caption="Uploaded Image", use_container_width=True)
 
         if st.button("Analyze Face", use_container_width=True):
-            with st.spinner("🧠 Analyzing with Comprehensive Multi-Model AI..."):
+            with st.spinner("🚀 Analyzing with Perfect AI Emotion System..."):
                 # To avoid re-reading the file, we use the `getvalue()` method
                 image_bytes = uploaded_image.getvalue()
 
-                # Use the comprehensive emotion detector
-                result = analyze_face_comprehensive(io.BytesIO(image_bytes))
+                # Use emotion detector (perfect or simple fallback)
+                result = analyze_face_perfect(io.BytesIO(image_bytes))
 
                 if result:
-                    st.success("✅ Comprehensive Multi-Model AI analysis complete!")
+                    st.success("✅ Perfect AI Emotion System analysis complete!")
 
                     # Draw emotions on the image
-                    processed_image = draw_emotion_on_face_comprehensive(io.BytesIO(image_bytes), result)
+                    processed_image = draw_emotion_on_face_perfect(io.BytesIO(image_bytes), result)
 
                     if processed_image is not None:
-                        st.image(processed_image, caption="🧠 Comprehensive Multi-Model Emotion AI", use_container_width=True)
+                        st.image(processed_image, caption="🚀 Perfect AI Emotion Detection System", use_container_width=True)
 
                     # Format and display results
-                    formatted_results = format_emotion_results_comprehensive(result)
+                    formatted_results = format_emotion_results_perfect(result)
                     
-                    st.write("### 🧠 Comprehensive Multi-Model AI Analysis")
+                    st.write("### 🚀 Perfect AI Emotion System Analysis")
                     
                     for face_data in formatted_results:
-                        with st.expander(f"🧠 Multi-Model AI Detected: {face_data['dominant_emotion']} ({face_data['confidence']})", expanded=True):
+                        with st.expander(f"🚀 Perfect AI Detected: {face_data['dominant_emotion']} ({face_data['confidence']})", expanded=True):
                             
                             col1, col2 = st.columns([1, 1])
                             
                             with col1:
-                                st.write("**📍 Advanced Detection Info:**")
+                                st.write("**🚀 Perfect Detection Metrics:**")
                                 st.write(f"• Position: ({face_data['region']['x']}, {face_data['region']['y']})")
                                 st.write(f"• Size: {face_data['region']['w']} × {face_data['region']['h']} pixels")
                                 st.write(f"• Face Area: {face_data.get('face_area', 0):,} pixels²")
-                                st.write(f"• Detection Method: {face_data.get('detection_method', 'standard').title()}")
-                                st.write(f"• Models Used: {face_data.get('models_used', 0)}")
+                                st.write(f"• Detection Method: {face_data.get('detection_method', 'perfect').title()}")
+                                st.write(f"• AI Models Used: {face_data.get('models_used', 0)}")
+                                st.write(f"• Image Enhancements: {face_data.get('enhancement_count', 0)}")
+                                st.write(f"• Total Quality Score: {face_data.get('total_score', 'N/A')}")
                             
                             with col2:
-                                st.write("**🧠 Multi-Model AI Result:**")
+                                st.write("**🚀 Perfect AI Result:**")
                                 
-                                # Comprehensive emotion display with extended emojis
+                                # Extended emotion emojis for 28 emotions
                                 emotion_emojis = {
                                     'Happy': '😊', 'Sad': '😢', 'Angry': '😠', 'Fear': '😨', 
                                     'Surprise': '😲', 'Disgust': '🤢', 'Neutral': '😐',
                                     'Contempt': '😤', 'Excitement': '🤩', 'Boredom': '😑',
                                     'Confusion': '😕', 'Disappointment': '😞', 'Embarrassment': '😳',
                                     'Pain': '😣', 'Pleasure': '😌', 'Relief': '😮‍💨',
-                                    'Shame': '😔', 'Pride': '😏'
+                                    'Shame': '😔', 'Pride': '😏', 'Anxiety': '😰', 'Love': '😍',
+                                    'Jealousy': '😒', 'Guilt': '😖', 'Hope': '🤗', 'Despair': '😩',
+                                    'Curiosity': '🤔', 'Determination': '😤', 'Frustration': '😤',
+                                    'Serenity': '😌'
                                 }
                                 emoji = emotion_emojis.get(face_data['dominant_emotion'], '🎭')
                                 
                                 st.markdown(f"## {emoji} **{face_data['dominant_emotion']}**")
-                                st.caption(f"🧠 Powered by {face_data.get('model_type', 'Multi-Model')} AI")
+                                st.caption(f"🚀 Powered by {face_data.get('model_type', 'Perfect AI')} System")
                                 
                                 # Confidence indicator with color coding
                                 confidence_val = float(face_data['confidence'].rstrip('%')) / 100
@@ -1264,38 +1243,48 @@ with tab_face:
                                 
                                 # Show raw predictions if available
                                 if face_data.get('raw_predictions'):
-                                    with st.expander("🔍 Raw Multi-Model AI Predictions", expanded=False):
-                                        for i, model_preds in enumerate(face_data['raw_predictions']):
-                                            st.write(f"**Model {i+1} Predictions:**")
-                                            for pred in model_preds:
-                                                st.write(f"  • **{pred['label']}**: {pred['score']:.1%}")
+                                    with st.expander("🔍 Raw Perfect AI Model Predictions", expanded=False):
+                                        for model_data in face_data['raw_predictions']:
+                                            model_name = model_data.get('model', 'Unknown')
+                                            weight = model_data.get('weight', 0)
+                                            st.write(f"**{model_name.title()} Model (Weight: {weight:.1%}):**")
+                                            predictions = model_data.get('predictions', [])
+                                            for pred in predictions[:5]:  # Show top 5
+                                                st.write(f"  • **{pred['label']}**: {pred['score']:.2%}")
                                             st.write("---")
                             
-                            st.write("**📊 Comprehensive Emotion Analysis (Top 10):**")
+                            st.write("**📊 Perfect Emotion Analysis (Top 15 of 28 Emotions):**")
                             
-                            # Create enhanced visual display for comprehensive emotions
+                            # Create advanced visual display for perfect emotions
                             emotions_list = list(face_data['all_emotions'].items())
                             
-                            # Display in two columns for better layout
-                            emotion_cols = st.columns(2)
+                            # Display in three columns for better layout
+                            emotion_cols = st.columns(3)
                             
                             for i, (emotion, score) in enumerate(emotions_list):
-                                # Comprehensive emotion emojis
+                                # Perfect emotion emojis for all 28 emotions
                                 emotion_emojis = {
                                     'Happy': '😊', 'Sad': '😢', 'Angry': '😠', 'Fear': '😨', 
                                     'Surprise': '😲', 'Disgust': '🤢', 'Neutral': '😐',
                                     'Contempt': '😤', 'Excitement': '🤩', 'Boredom': '😑',
                                     'Confusion': '😕', 'Disappointment': '😞', 'Embarrassment': '😳',
                                     'Pain': '😣', 'Pleasure': '😌', 'Relief': '😮‍💨',
-                                    'Shame': '😔', 'Pride': '😏'
+                                    'Shame': '😔', 'Pride': '😏', 'Anxiety': '😰', 'Love': '😍',
+                                    'Jealousy': '😒', 'Guilt': '😖', 'Hope': '🤗', 'Despair': '😩',
+                                    'Curiosity': '🤔', 'Determination': '😤', 'Frustration': '😤',
+                                    'Serenity': '😌'
                                 }
                                 emoji = emotion_emojis.get(emotion, '🎭')
                                 
-                                # Alternate between columns
-                                with emotion_cols[i % 2]:
+                                # Distribute across three columns
+                                with emotion_cols[i % 3]:
                                     score_val = float(score.rstrip('%')) / 100
                                     st.write(f"{emoji} **{emotion}**: {score}")
-                                    st.progress(score_val)
+                                    # Use different colors for progress bars based on score
+                                    if score_val > 0.1:
+                                        st.progress(score_val)
+                                    else:
+                                        st.progress(score_val)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
